@@ -32,11 +32,23 @@
   },
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "git+https://github.com/whxaxes/tcp-proxy.js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/whxaxes/tcp-proxy.js/issues"
+  },
+  "homepage": "https://github.com/whxaxes/tcp-proxy.js#readme",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
   },
   "files": [
     "index.js"
   ],
   "author": "wanghx",
-  "license": "MIT"
+  "license": "MIT",
+  "main": "index.js",
+  "keywords": [
+    "tcp",
+    "proxy"
+  ]
 }
