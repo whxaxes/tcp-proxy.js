@@ -25,5 +25,44 @@ simple tcp proxy
 ## Usage
 
 ```bash
-npm i tcp-proxy.js --save
+$ npm i tcp-proxy.js --save
+```
+
+create proxy
+
+```js
+const TCPProxy = require('tcp-proxy.js');
+const proxy = new TCPProxy({ port: 9229 });
+proxy.createProxy({
+  forwardPort: 9999,
+  forwardHost: 'localhost',
+});
+```
+
+end proxy
+
+```js
+proxy.end();
+```
+
+interceptor
+
+```js
+proxy.createProxy({
+  forwardPort: 9999,
+  interceptor: {
+    client(chunk) {
+      // request => proxy server => interceptor.client => forward server
+      const data = chunk.toString();
+      const newData = data.replace('GET / ', 'GET /tom ');
+      return Buffer.from(newData);
+    },
+    server(chunk) {
+      // forward server => interceptor.server => proxy server => response
+      const data = chunk.toString();
+      const newData = data.replace('hello tom', 'bello tom');
+      return Buffer.from(newData);
+    },
+  },
+});
 ```
