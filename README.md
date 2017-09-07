@@ -9,8 +9,8 @@ a simple tcp proxy
 
 [npm-image]: https://img.shields.io/npm/v/tcp-proxy.js.svg?style=flat-square
 [npm-url]: https://npmjs.org/package/tcp-proxy.js
-[travis-image]: https://img.shields.io/travis/{{org}}/tcp-proxy.js.svg?style=flat-square
-[travis-url]: https://travis-ci.org/{{org}}/tcp-proxy.js
+[travis-url]: https://travis-ci.org/whxaxes/tcp-proxy.js
+[travis-image]: http://img.shields.io/travis/whxaxes/tcp-proxy.js.svg
 [appveyor-url]: https://ci.appveyor.com/project/whxaxes/tcp-proxy.js/branch/master
 [appveyor-image]: https://ci.appveyor.com/api/projects/status/github/whxaxes/tcp-proxy.js?branch=master&svg=true
 [coveralls-url]: https://coveralls.io/r/whxaxes/tcp-proxy.js
