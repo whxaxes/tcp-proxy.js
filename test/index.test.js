@@ -51,7 +51,7 @@ describe('test/index.test.js', () => {
     assert(response.data.toString() === `hello world ${data.port}`);
   });
 
-  it('interceptor should work correctly', function* () {
+  it('should support interceptor', function* () {
     data = yield createServer();
     yield proxy.createProxy({
       forwardPort: data.port,
@@ -77,5 +77,34 @@ describe('test/index.test.js', () => {
 
     const response2 = yield urllib.request(`http://localhost:${proxyPort}/123`);
     assert(response2.data.toString() === `hello world ${data.port}`);
+  });
+
+  it('should support async interceptor', function* () {
+    data = yield createServer();
+    yield proxy.createProxy({
+      forwardPort: data.port,
+      interceptor: {
+        client(chunk) {
+          const data = chunk.toString();
+          return new Promise(resolve => {
+            setTimeout(() => {
+              const newData = data.replace('GET / ', 'GET /tom ');
+              resolve(newData);
+            }, 200);
+          });
+        },
+
+        server() {
+          return new Promise((resolve, reject) => {
+            setTimeout(() => {
+              reject(new Error('123'));
+            }, 200);
+          });
+        },
+      },
+    });
+
+    const response = yield urllib.request(`http://localhost:${proxyPort}/`);
+    assert(response.data.toString() === `hello tom ${data.port}`);
   });
 });

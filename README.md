@@ -1,6 +1,6 @@
 # tcp-proxy.js
 
-simple tcp proxy
+a simple tcp proxy
 
 [![NPM version][npm-image]][npm-url]
 [![build status][travis-image]][travis-url]
@@ -62,6 +62,26 @@ proxy.createProxy({
       const data = chunk.toString();
       const newData = data.replace('hello tom', 'bello tom');
       return Buffer.from(newData);
+    },
+  },
+});
+```
+
+async interceptor
+
+```js
+proxy.createProxy({
+  forwardPort: 9999,
+  interceptor: {
+    client(chunk) {
+      // request => proxy server => interceptor.client => forward server
+      const data = chunk.toString();
+      return new Promise(resolve => {
+        setTimeout(() => {
+          const newData = data.replace('GET / ', 'GET /tom ');
+          resolve(Buffer.from(newData));
+        }, 200);
+      });
     },
   },
 });

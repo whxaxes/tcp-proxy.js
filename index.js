@@ -4,6 +4,32 @@ const net = require('net');
 const through = require('through2');
 const EventEmitter = require('events').EventEmitter;
 
+function genThrough(interceptor) {
+  return through.obj(function(chunk, enc, done) {
+    const result = interceptor(chunk, enc);
+    const handle = data => {
+      if (data && !Buffer.isBuffer(data)) {
+        data = Buffer.from(data);
+      }
+
+      done(null, data || chunk);
+    };
+
+    if (result) {
+      if (typeof result.then === 'function') {
+        result.then(handle).catch(e => {
+          console.error(e);
+          handle();
+        });
+      } else {
+        handle(result);
+      }
+    } else {
+      handle();
+    }
+  });
+}
+
 module.exports = class TCPProxy extends EventEmitter {
   constructor(options) {
     super();
@@ -31,34 +57,29 @@ module.exports = class TCPProxy extends EventEmitter {
     return new Promise((resolve, reject) => {
       this.server = net
         .createServer(client => {
-          const server = net.connect({
-            port: forwardPort,
-            host: forwardHost,
-          }, () => {
-            let _client = client;
-            let _server = server;
+          const server = net.connect(
+            {
+              port: forwardPort,
+              host: forwardHost,
+            },
+            () => {
+              let _client = client;
+              let _server = server;
 
-            // client interceptor
-            if (interceptor.client) {
-              _client = _client.pipe(
-                through.obj(function(chunk, enc, done) {
-                  done(null, interceptor.client(chunk, enc) || chunk);
-                })
-              );
+              // client interceptor
+              if (interceptor.client) {
+                _client = _client.pipe(genThrough(interceptor.client));
+              }
+
+              // server interceptor
+              if (interceptor.server) {
+                _server = _server.pipe(genThrough(interceptor.server));
+              }
+
+              _client.pipe(server);
+              _server.pipe(client);
             }
-
-            // server interceptor
-            if (interceptor.server) {
-              _server = _server.pipe(
-                through.obj(function(chunk, enc, done) {
-                  done(null, interceptor.server(chunk, enc) || chunk);
-                })
-              );
-            }
-
-            _client.pipe(server);
-            _server.pipe(client);
-          });
+          );
 
           this.proxyClient = client;
           this.proxyServer = server;
