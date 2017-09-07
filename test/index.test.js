@@ -43,6 +43,14 @@ describe('test/index.test.js', () => {
     });
   });
 
+  it('proxy should work correctly when appoint a new port', function* () {
+    const newPort = 9700;
+    data = yield createServer();
+    yield proxy.createProxy({ port: newPort, forwardPort: data.port });
+    const response = yield urllib.request(`http://localhost:${newPort}/`);
+    assert(response.data.toString() === `hello world ${data.port}`);
+  });
+
   it('interceptor should work correctly', function* () {
     data = yield createServer();
     yield proxy.createProxy({

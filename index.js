@@ -11,7 +11,7 @@ module.exports = class TCPProxy extends EventEmitter {
   }
 
   createProxy({ port, forwardPort, forwardHost, interceptor }) {
-    this.port = port || this.port;
+    const proxyPort = port || this.port;
     interceptor = interceptor || {};
 
     if (this.server) {
@@ -69,7 +69,7 @@ module.exports = class TCPProxy extends EventEmitter {
           client.once('error', onClose);
           this.emit('connection');
         })
-        .listen(this.port);
+        .listen(proxyPort);
 
       this.server.once('close', () => {
         this.server = null;
