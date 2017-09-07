@@ -47,42 +47,40 @@ module.exports = class TCPProxy extends EventEmitter {
       });
     }
 
-    const onClose = () => {
-      this.proxyClient && this.proxyClient.destroy();
-      this.proxyServer && this.proxyServer.destroy();
-      this.proxyClient = null;
-      this.proxyServer = null;
-    };
-
     return new Promise((resolve, reject) => {
       this.server = net
         .createServer(client => {
-          const server = net.connect(
-            {
-              port: forwardPort,
-              host: forwardHost,
-            },
-            () => {
-              let _client = client;
-              let _server = server;
+          let interceptorClient;
+          let interceptorServer;
+          const server = net.connect({
+            port: forwardPort,
+            host: forwardHost,
+          }, () => {
+            let _client = client;
+            let _server = server;
 
-              // client interceptor
-              if (interceptor.client) {
-                _client = _client.pipe(genThrough(interceptor.client));
-              }
-
-              // server interceptor
-              if (interceptor.server) {
-                _server = _server.pipe(genThrough(interceptor.server));
-              }
-
-              _client.pipe(server);
-              _server.pipe(client);
+            // client interceptor
+            if (interceptor.client) {
+              interceptorClient = genThrough(interceptor.client);
+              _client = _client.pipe(interceptorClient);
             }
-          );
 
-          this.proxyClient = client;
-          this.proxyServer = server;
+            // server interceptor
+            if (interceptor.server) {
+              interceptorServer = genThrough(interceptor.server);
+              _server = _server.pipe(interceptorServer);
+            }
+
+            _client.pipe(server);
+            _server.pipe(client);
+          });
+
+          const onClose = () => {
+            client.destroy();
+            server.destroy();
+            interceptorClient && interceptorClient.end();
+            interceptorServer && interceptorServer.end();
+          };
 
           server.once('close', onClose);
           server.once('error', onClose);
@@ -94,7 +92,6 @@ module.exports = class TCPProxy extends EventEmitter {
 
       this.server.once('close', () => {
         this.server = null;
-        onClose();
       });
 
       this.server.once('error', reject);

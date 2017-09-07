@@ -72,11 +72,14 @@ describe('test/index.test.js', () => {
         },
       },
     });
-    const response = yield urllib.request(`http://localhost:${proxyPort}/`);
-    assert(response.data.toString() === `bello tom ${data.port}`);
 
-    const response2 = yield urllib.request(`http://localhost:${proxyPort}/123`);
-    assert(response2.data.toString() === `hello world ${data.port}`);
+    const response = yield {
+      result: urllib.request(`http://localhost:${proxyPort}/`),
+      result2: urllib.request(`http://localhost:${proxyPort}/123`),
+    };
+
+    assert(response.result.data.toString() === `bello tom ${data.port}`);
+    assert(response.result2.data.toString() === `hello world ${data.port}`);
   });
 
   it('should support async interceptor', function* () {
