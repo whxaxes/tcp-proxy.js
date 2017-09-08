@@ -34,6 +34,14 @@ describe('test/index.test.js', () => {
     assert(response.data.toString() === `hello world ${data.port}`);
   });
 
+  it('proxy should not throw error with executing end function multiple times', function* () {
+    data = yield createServer();
+    yield proxy.createProxy({ forwardPort: data.port });
+    yield proxy.end();
+    yield proxy.end();
+    yield proxy.end();
+  });
+
   it('proxy should start only one server', done => {
     co(function* () {
       data = yield createServer();

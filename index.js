@@ -103,6 +103,10 @@ module.exports = class TCPProxy extends EventEmitter {
   }
 
   end() {
+    if (!this.server) {
+      return Promise.resolve();
+    }
+
     return new Promise(resolve => {
       this.server.close(resolve);
     });
