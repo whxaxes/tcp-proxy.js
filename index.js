@@ -73,6 +73,7 @@ module.exports = class TCPProxy extends EventEmitter {
 
             _client.pipe(server);
             _server.pipe(client);
+            this.emit('connection', _client, _server);
           });
 
           const onClose = () => {
@@ -86,7 +87,6 @@ module.exports = class TCPProxy extends EventEmitter {
           server.once('error', onClose);
           client.once('close', onClose);
           client.once('error', onClose);
-          this.emit('connection');
         })
         .listen(proxyPort);
 
