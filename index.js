@@ -34,6 +34,7 @@ module.exports = class TCPProxy extends EventEmitter {
   constructor(options = {}) {
     super();
     this.port = options.port;
+    this.clients = [];
   }
 
   createProxy({ port, forwardPort, forwardHost, interceptor }) {
@@ -81,18 +82,16 @@ module.exports = class TCPProxy extends EventEmitter {
             server.destroy();
             interceptorClient && interceptorClient.end();
             interceptorServer && interceptorServer.end();
+            this.server && this.server.removeListener('close', onClose);
           };
 
           server.once('close', onClose);
           server.once('error', onClose);
           client.once('close', onClose);
           client.once('error', onClose);
+          this.server.once('close', onClose);
         })
         .listen(proxyPort);
-
-      this.server.once('close', () => {
-        this.server = null;
-      });
 
       this.server.once('error', reject);
       this.server.once('listening', () => {
@@ -108,7 +107,10 @@ module.exports = class TCPProxy extends EventEmitter {
     }
 
     return new Promise(resolve => {
-      this.server.close(resolve);
+      this.server.close(() => {
+        this.server = null;
+        resolve();
+      });
     });
   }
 };
