@@ -34,6 +34,15 @@ describe('test/index.test.js', () => {
     assert(response.data.toString() === `hello world ${data.port}`);
   });
 
+  it('proxy should work correctly without options', function* () {
+    const newProxy = new TCPProxy();
+    data = yield createServer();
+    yield newProxy.createProxy({ port: 9800, forwardPort: data.port });
+    const response = yield urllib.request('http://localhost:9800/');
+    assert(response.data.toString() === `hello world ${data.port}`);
+    yield newProxy.end();
+  });
+
   it('proxy should not throw error with executing end function multiple times', function* () {
     data = yield createServer();
     yield proxy.createProxy({ forwardPort: data.port });

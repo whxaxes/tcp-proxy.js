@@ -31,7 +31,7 @@ function genThrough(interceptor) {
 }
 
 module.exports = class TCPProxy extends EventEmitter {
-  constructor(options) {
+  constructor(options = {}) {
     super();
     this.port = options.port;
   }
