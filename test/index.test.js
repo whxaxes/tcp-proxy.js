@@ -99,6 +99,25 @@ describe('test/index.test.js', () => {
     assert(response.result2.data.toString() === `hello world ${data.port}`);
   });
 
+  it('should reject while proxy server error occurs', done => {
+    const httpServer = require('http')
+      .createServer()
+      .listen(proxyPort, () => {
+        proxy.createProxy({ forwardPort: 1234 })
+          .then(() => {
+            end(new Error('no error occurs'));
+          })
+          .catch(() => {
+            end();
+          });
+      });
+
+    function end(err) {
+      httpServer.close();
+      done(err);
+    }
+  });
+
   it('should support async interceptor', function* () {
     data = yield createServer();
     yield proxy.createProxy({
