@@ -2,6 +2,7 @@
 
 const net = require('net');
 const through = require('through2');
+const debug = require('debug')('tcp-proxy');
 const EventEmitter = require('events').EventEmitter;
 
 function genThrough(interceptor) {
@@ -53,6 +54,7 @@ module.exports = class TCPProxy extends EventEmitter {
         .createServer(client => {
           let interceptorClient;
           let interceptorServer;
+          debug('new connection from %o', client.address());
           const server = net.connect({
             port: forwardPort,
             host: forwardHost,
@@ -74,14 +76,16 @@ module.exports = class TCPProxy extends EventEmitter {
 
             _client.pipe(server);
             _server.pipe(client);
+            debug(`proxy 127.0.0.1:${port} connect to ${forwardHost}:${forwardPort}`);
             this.emit('connection', _client, _server);
           });
 
-          const onClose = () => {
+          const onClose = err => {
             client.destroy();
             server.destroy();
             interceptorClient && interceptorClient.end();
             interceptorServer && interceptorServer.end();
+            debug(`${forwardHost}:${forwardPort} disconnect [${err ? `error: ${err.message}` : 'close'}]`);
             this.removeListener('close', onClose);
           };
 
@@ -93,8 +97,13 @@ module.exports = class TCPProxy extends EventEmitter {
         })
         .listen(proxyPort);
 
-      this.server.once('error', reject);
+      this.server.once('error', e => {
+        debug(`proxy server error: ${e.message}`);
+        reject(e);
+      });
+
       this.server.once('listening', () => {
+        debug(`proxy server listening on ${proxyPort}`);
         this.server.removeListener('error', reject);
         resolve(this.server);
       });
@@ -109,6 +118,7 @@ module.exports = class TCPProxy extends EventEmitter {
     return new Promise(resolve => {
       this.emit('close');
       this.server.close(() => {
+        debug('proxy server closed');
         this.server = null;
         resolve();
       });
