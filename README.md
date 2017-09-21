@@ -80,3 +80,7 @@ proxy.createProxy({
   },
 });
 ```
+
+## License
+
+MIT
