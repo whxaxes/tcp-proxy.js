@@ -40,6 +40,7 @@ module.exports = class TCPProxy extends EventEmitter {
 
   createProxy({ port, forwardPort, forwardHost, interceptor }) {
     const proxyPort = port || this.port;
+    forwardHost = forwardHost || '127.0.0.1';
     interceptor = interceptor || {};
 
     if (this.server) {
@@ -76,7 +77,7 @@ module.exports = class TCPProxy extends EventEmitter {
 
             _client.pipe(server);
             _server.pipe(client);
-            debug(`proxy 127.0.0.1:${port} connect to ${forwardHost}:${forwardPort}`);
+            debug(`proxy 127.0.0.1:${proxyPort} connect to ${forwardHost}:${forwardPort}`);
             this.emit('connection', _client, _server);
           });
 
