@@ -3,24 +3,18 @@
 a simple tcp proxy
 
 [![NPM version][npm-image]][npm-url]
-[![build status][travis-image]][travis-url]
-[![Test coverage][codecov-image]][codecov-url]
-[![David deps][david-image]][david-url]
-[![Known Vulnerabilities][snyk-image]][snyk-url]
-[![NPM download][download-image]][download-url]
+[![Build Status][travis-image]][travis-url]
+[![Appveyor status][appveyor-image]][appveyor-url]
+[![Coverage Status][coveralls-image]][coveralls-url]
 
 [npm-image]: https://img.shields.io/npm/v/tcp-proxy.js.svg?style=flat-square
 [npm-url]: https://npmjs.org/package/tcp-proxy.js
-[travis-image]: https://img.shields.io/travis/{{org}}/tcp-proxy.js.svg?style=flat-square
-[travis-url]: https://travis-ci.org/{{org}}/tcp-proxy.js
-[codecov-image]: https://codecov.io/gh/{{org}}/tcp-proxy.js/branch/master/graph/badge.svg
-[codecov-url]: https://codecov.io/gh/{{org}}/tcp-proxy.js
-[david-image]: https://img.shields.io/david/{{org}}/tcp-proxy.js.svg?style=flat-square
-[david-url]: https://david-dm.org/{{org}}/tcp-proxy.js
-[snyk-image]: https://snyk.io/test/npm/tcp-proxy.js/badge.svg?style=flat-square
-[snyk-url]: https://snyk.io/test/npm/tcp-proxy.js
-[download-image]: https://img.shields.io/npm/dm/tcp-proxy.js.svg?style=flat-square
-[download-url]: https://npmjs.org/package/tcp-proxy.js
+[travis-url]: https://travis-ci.org/whxaxes/tcp-proxy.js
+[travis-image]: http://img.shields.io/travis/whxaxes/tcp-proxy.js.svg
+[appveyor-url]: https://ci.appveyor.com/project/whxaxes/tcp-proxy.js/branch/master
+[appveyor-image]: https://ci.appveyor.com/api/projects/status/github/whxaxes/tcp-proxy.js?branch=master&svg=true
+[coveralls-url]: https://coveralls.io/r/whxaxes/tcp-proxy.js
+[coveralls-image]: https://img.shields.io/coveralls/whxaxes/tcp-proxy.js.svg
 
 ## Usage
 
@@ -86,3 +80,7 @@ proxy.createProxy({
   },
 });
 ```
+
+## License
+
+MIT

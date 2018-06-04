@@ -34,6 +34,23 @@ describe('test/index.test.js', () => {
     assert(response.data.toString() === `hello world ${data.port}`);
   });
 
+  it('proxy should work correctly without options', function* () {
+    const newProxy = new TCPProxy();
+    data = yield createServer();
+    yield newProxy.createProxy({ port: 9800, forwardPort: data.port });
+    const response = yield urllib.request('http://localhost:9800/');
+    assert(response.data.toString() === `hello world ${data.port}`);
+    yield newProxy.end();
+  });
+
+  it('proxy should not throw error with executing end function multiple times', function* () {
+    data = yield createServer();
+    yield proxy.createProxy({ forwardPort: data.port });
+    yield proxy.end();
+    yield proxy.end();
+    yield proxy.end();
+  });
+
   it('proxy should start only one server', done => {
     co(function* () {
       data = yield createServer();
@@ -72,11 +89,33 @@ describe('test/index.test.js', () => {
         },
       },
     });
-    const response = yield urllib.request(`http://localhost:${proxyPort}/`);
-    assert(response.data.toString() === `bello tom ${data.port}`);
 
-    const response2 = yield urllib.request(`http://localhost:${proxyPort}/123`);
-    assert(response2.data.toString() === `hello world ${data.port}`);
+    const response = yield {
+      result: urllib.request(`http://localhost:${proxyPort}/`),
+      result2: urllib.request(`http://localhost:${proxyPort}/123`),
+    };
+
+    assert(response.result.data.toString() === `bello tom ${data.port}`);
+    assert(response.result2.data.toString() === `hello world ${data.port}`);
+  });
+
+  it('should reject while proxy server error occurs', done => {
+    const httpServer = require('http')
+      .createServer()
+      .listen(proxyPort, () => {
+        proxy.createProxy({ forwardPort: 1234 })
+          .then(() => {
+            end(new Error('no error occurs'));
+          })
+          .catch(() => {
+            end();
+          });
+      });
+
+    function end(err) {
+      httpServer.close();
+      done(err);
+    }
   });
 
   it('should support async interceptor', function* () {

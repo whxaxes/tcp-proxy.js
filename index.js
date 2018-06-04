@@ -2,6 +2,7 @@
 
 const net = require('net');
 const through = require('through2');
+const debug = require('debug')('tcp-proxy');
 const EventEmitter = require('events').EventEmitter;
 
 function genThrough(interceptor) {
@@ -31,13 +32,15 @@ function genThrough(interceptor) {
 }
 
 module.exports = class TCPProxy extends EventEmitter {
-  constructor(options) {
+  constructor(options = {}) {
     super();
     this.port = options.port;
+    this.clients = [];
   }
 
   createProxy({ port, forwardPort, forwardHost, interceptor }) {
     const proxyPort = port || this.port;
+    forwardHost = forwardHost || '127.0.0.1';
     interceptor = interceptor || {};
 
     if (this.server) {
@@ -47,58 +50,61 @@ module.exports = class TCPProxy extends EventEmitter {
       });
     }
 
-    const onClose = () => {
-      this.proxyClient && this.proxyClient.destroy();
-      this.proxyServer && this.proxyServer.destroy();
-      this.proxyClient = null;
-      this.proxyServer = null;
-    };
-
     return new Promise((resolve, reject) => {
       this.server = net
         .createServer(client => {
-          const server = net.connect(
-            {
-              port: forwardPort,
-              host: forwardHost,
-            },
-            () => {
-              let _client = client;
-              let _server = server;
+          let interceptorClient;
+          let interceptorServer;
+          debug('new connection from %o', client.address());
+          const server = net.connect({
+            port: forwardPort,
+            host: forwardHost,
+          }, () => {
+            let _client = client;
+            let _server = server;
 
-              // client interceptor
-              if (interceptor.client) {
-                _client = _client.pipe(genThrough(interceptor.client));
-              }
-
-              // server interceptor
-              if (interceptor.server) {
-                _server = _server.pipe(genThrough(interceptor.server));
-              }
-
-              _client.pipe(server);
-              _server.pipe(client);
+            // client interceptor
+            if (interceptor.client) {
+              interceptorClient = genThrough(interceptor.client);
+              _client = _client.pipe(interceptorClient);
             }
-          );
 
-          this.proxyClient = client;
-          this.proxyServer = server;
+            // server interceptor
+            if (interceptor.server) {
+              interceptorServer = genThrough(interceptor.server);
+              _server = _server.pipe(interceptorServer);
+            }
+
+            _client.pipe(server);
+            _server.pipe(client);
+            debug(`proxy 127.0.0.1:${proxyPort} connect to ${forwardHost}:${forwardPort}`);
+            this.emit('connection', _client, _server);
+          });
+
+          const onClose = err => {
+            client.destroy();
+            server.destroy();
+            interceptorClient && interceptorClient.end();
+            interceptorServer && interceptorServer.end();
+            debug(`${forwardHost}:${forwardPort} disconnect [${err ? `error: ${err.message}` : 'close'}]`);
+            this.removeListener('close', onClose);
+          };
 
           server.once('close', onClose);
           server.once('error', onClose);
           client.once('close', onClose);
           client.once('error', onClose);
-          this.emit('connection');
+          this.once('close', onClose);
         })
         .listen(proxyPort);
 
-      this.server.once('close', () => {
-        this.server = null;
-        onClose();
+      this.server.once('error', e => {
+        debug(`proxy server error: ${e.message}`);
+        reject(e);
       });
 
-      this.server.once('error', reject);
       this.server.once('listening', () => {
+        debug(`proxy server listening on ${proxyPort}`);
         this.server.removeListener('error', reject);
         resolve(this.server);
       });
@@ -106,8 +112,17 @@ module.exports = class TCPProxy extends EventEmitter {
   }
 
   end() {
+    if (!this.server) {
+      return Promise.resolve();
+    }
+
     return new Promise(resolve => {
-      this.server.close(resolve);
+      this.emit('close');
+      this.server.close(() => {
+        debug('proxy server closed');
+        this.server = null;
+        resolve();
+      });
     });
   }
 };

@@ -1,8 +1,9 @@
 {
   "name": "tcp-proxy.js",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "description": "simple tcp proxy",
   "dependencies": {
+    "debug": "^3.0.1",
     "through2": "^2.0.3"
   },
   "devDependencies": {
