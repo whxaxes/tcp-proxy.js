@@ -34,11 +34,13 @@ function genThrough(interceptor) {
 module.exports = class TCPProxy extends EventEmitter {
   constructor(options = {}) {
     super();
+    this.host = options.host;
     this.port = options.port;
     this.clients = [];
   }
 
-  createProxy({ port, forwardPort, forwardHost, interceptor }) {
+  createProxy({ host, port, forwardPort, forwardHost, interceptor }) {
+    const proxyHost = host || this.host;
     const proxyPort = port || this.port;
     forwardHost = forwardHost || '127.0.0.1';
     interceptor = interceptor || {};
@@ -96,7 +98,7 @@ module.exports = class TCPProxy extends EventEmitter {
           client.once('error', onClose);
           this.once('close', onClose);
         })
-        .listen(proxyPort);
+        .listen(proxyPort, proxyHost);
 
       this.server.once('error', e => {
         debug(`proxy server error: ${e.message}`);
