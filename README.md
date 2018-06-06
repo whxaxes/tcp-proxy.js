@@ -1,6 +1,6 @@
 # tcp-proxy.js
 
-A simple TCP Proxy
+A TCP Proxy package for NodeJS
 
 [![NPM version][npm-image]][npm-url]
 [![Build Status][travis-image]][travis-url]
