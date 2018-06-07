@@ -1,6 +1,6 @@
 # tcp-proxy.js
 
-a simple tcp proxy
+A TCP Proxy package for NodeJS
 
 [![NPM version][npm-image]][npm-url]
 [![Build Status][travis-image]][travis-url]
@@ -22,7 +22,7 @@ a simple tcp proxy
 $ npm i tcp-proxy.js --save
 ```
 
-create proxy
+### Create a new proxy instance
 
 ```js
 const TCPProxy = require('tcp-proxy.js');
@@ -33,13 +33,25 @@ proxy.createProxy({
 });
 ```
 
-end proxy
+### Create a new proxy instance for a specific IP/Hostname
+This will only listen to connections on the specified IP/Hostname, you can have duplicates of ports this way.
+
+```js
+const TCPProxy = require('tcp-proxy.js');
+const proxy = new TCPProxy({ host: 'localhost', port: 9229 });
+proxy.createProxy({
+  forwardPort: 9999,
+  forwardHost: 'localhost',
+});
+```
+
+### End proxy
 
 ```js
 proxy.end();
 ```
 
-interceptor
+### Interceptor
 
 ```js
 proxy.createProxy({
@@ -61,7 +73,7 @@ proxy.createProxy({
 });
 ```
 
-async interceptor
+### Async Interceptor
 
 ```js
 proxy.createProxy({
