@@ -93,6 +93,53 @@ proxy.createProxy({
 });
 ```
 
+
+### Connection Information
+
+#### IP
+
+```js
+proxy.createProxy({
+  forwardPort: 9999,
+  interceptor: {
+    client(result) {
+      console.log('Connection IP:' + result.ip);
+      return result
+    }
+  },
+});
+```
+
+
+#### Port
+
+```js
+proxy.createProxy({
+  forwardPort: 9999,
+  interceptor: {
+    client(result) {
+      console.log('Connection port:' + result.port);
+      return result
+    }
+  },
+});
+```
+
+
+#### Data size
+
+```js
+proxy.createProxy({
+  forwardPort: 9999,
+  interceptor: {
+    client(result) {
+      console.log('Connection Size:' + result.size);
+      return result
+    }
+  },
+});
+```
+
 ## License
 
 MIT
