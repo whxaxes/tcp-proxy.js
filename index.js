@@ -13,8 +13,8 @@ function genThrough(interceptor, host, port) {
       data: chunk,
       ip: host.address || host,
       port: host.port || port,
-      size: chunk.length
-    }
+      size: chunk.length,
+    };
 
     const result = interceptor(chunk, enc);
 
