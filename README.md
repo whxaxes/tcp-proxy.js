@@ -57,15 +57,15 @@ proxy.end();
 proxy.createProxy({
   forwardPort: 9999,
   interceptor: {
-    client(chunk) {
+    client(result) {
       // request => proxy server => interceptor.client => forward server
-      const data = chunk.toString();
+      const data = result.data.toString();
       const newData = data.replace('GET / ', 'GET /tom ');
       return Buffer.from(newData);
     },
-    server(chunk) {
+    server(result) {
       // forward server => interceptor.server => proxy server => response
-      const data = chunk.toString();
+      const data = result.data.toString();
       const newData = data.replace('hello tom', 'bello tom');
       return Buffer.from(newData);
     },
@@ -79,9 +79,9 @@ proxy.createProxy({
 proxy.createProxy({
   forwardPort: 9999,
   interceptor: {
-    client(chunk) {
+    client(result) {
       // request => proxy server => interceptor.client => forward server
-      const data = chunk.toString();
+      const data = result.data.toString();
       return new Promise(resolve => {
         setTimeout(() => {
           const newData = data.replace('GET / ', 'GET /tom ');
