@@ -59,15 +59,15 @@ proxy.createProxy({
   interceptor: {
     client(result) {
       // request => proxy server => interceptor.client => forward server
-      const data = result.data.toString();
-      const newData = data.replace('GET / ', 'GET /tom ');
-      return Buffer.from(newData);
+      result.data = result.data.toString().replace('GET / ', 'GET /tom ');
+      result.data = Buffer.from(result.data);
+      return result;
     },
     server(result) {
       // forward server => interceptor.server => proxy server => response
-      const data = result.data.toString();
-      const newData = data.replace('hello tom', 'bello tom');
-      return Buffer.from(newData);
+      result.data = result.data.toString().replace('hello tom', 'bello tom');
+      result.data = Buffer.from(result.data);
+      return result;
     },
   },
 });
@@ -84,8 +84,8 @@ proxy.createProxy({
       const data = result.data.toString();
       return new Promise(resolve => {
         setTimeout(() => {
-          const newData = data.replace('GET / ', 'GET /tom ');
-          resolve(Buffer.from(newData));
+          result.data = result.data.toString().replace('GET / ', 'GET /tom ');
+          resolve(result.data = Buffer.from(result.data););
         }, 200);
       });
     },
