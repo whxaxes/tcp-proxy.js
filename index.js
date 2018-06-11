@@ -9,12 +9,12 @@ function genThrough(interceptor, connection) {
 
   return through.obj(function(chunk, enc, done) {
 
-    let context = {
+    const context = {
       client: {
         ip: connection.client.address().address,
         port: connection.client.address().port,
       },
-      server : {
+      server: {
         ip: connection.server.address().address,
         port: connection.server.address().port,
       },
@@ -22,7 +22,7 @@ function genThrough(interceptor, connection) {
         ip: connection.forwardHost,
         port: connection.forwardPort,
       },
-      size : chunk.length,
+      size: chunk.length,
     };
 
     const result = interceptor(chunk, enc, context);
