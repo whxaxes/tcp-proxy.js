@@ -57,17 +57,17 @@ proxy.end();
 proxy.createProxy({
   forwardPort: 9999,
   interceptor: {
-    client(result) {
+    client(chunk) {
       // request => proxy server => interceptor.client => forward server
-      result.data = result.data.toString().replace('GET / ', 'GET /tom ');
-      result.data = Buffer.from(result.data);
-      return result;
+      const data = chunk.toString();
+      const newData = data.replace('GET / ', 'GET /tom ');
+      return Buffer.from(newData);
     },
-    server(result) {
+    server(chunk) {
       // forward server => interceptor.server => proxy server => response
-      result.data = result.data.toString().replace('hello tom', 'bello tom');
-      result.data = Buffer.from(result.data);
-      return result;
+      const data = chunk.toString();
+      const newData = data.replace('hello tom', 'bello tom');
+      return Buffer.from(newData);
     },
   },
 });
@@ -79,13 +79,13 @@ proxy.createProxy({
 proxy.createProxy({
   forwardPort: 9999,
   interceptor: {
-    client(result) {
+    client(chunk) {
       // request => proxy server => interceptor.client => forward server
-      const data = result.data.toString();
+      const data = chunk.toString();
       return new Promise(resolve => {
         setTimeout(() => {
-          result.data = result.data.toString().replace('GET / ', 'GET /tom ');
-          resolve(result.data = Buffer.from(result.data););
+          const newData = data.replace('GET / ', 'GET /tom ');
+          resolve(Buffer.from(newData));
         }, 200);
       });
     },
@@ -96,35 +96,19 @@ proxy.createProxy({
 
 ### Connection Information
 
-#### IP
+#### IP, Port of Client, Server and Self
 
 ```js
 proxy.createProxy({
   forwardPort: 9999,
   interceptor: {
-    client(result) {
-      console.log('Connection IP:' + result.ip);
+    client(result, encoding, connection) {
+      console.info('Connection from ', connection.client.ip, ':', connection.client.port, 'to', connection.self.ip, ':', connection.self.port, 'from', connection.server.ip, ':', connection.server.port);
       return result
     }
   },
 });
 ```
-
-
-#### Port
-
-```js
-proxy.createProxy({
-  forwardPort: 9999,
-  interceptor: {
-    client(result) {
-      console.log('Connection port:' + result.port);
-      return result
-    }
-  },
-});
-```
-
 
 #### Data size
 
@@ -132,8 +116,8 @@ proxy.createProxy({
 proxy.createProxy({
   forwardPort: 9999,
   interceptor: {
-    client(result) {
-      console.log('Connection Size:' + result.size);
+    server(result, encoding, connection) {
+      console.log('Connection Size:' + connection.size);
       return result
     }
   },
