@@ -73,15 +73,15 @@ describe('test/index.test.js', () => {
     yield proxy.createProxy({
       forwardPort: data.port,
       interceptor: {
-        client(result) {
-          const data = result.data.toString();
+        client(chunk) {
+          const data = chunk.toString();
           if (data.includes('GET / ')) {
             const newData = data.replace('GET / ', 'GET /tom ');
             return Buffer.from(newData);
           }
         },
-        server(result) {
-          const data = result.data.toString();
+        server(chunk) {
+          const data = chunk.toString();
           if (data.includes('hello tom')) {
             const newData = data.replace('hello tom', 'bello tom');
             return Buffer.from(newData);
@@ -123,8 +123,8 @@ describe('test/index.test.js', () => {
     yield proxy.createProxy({
       forwardPort: data.port,
       interceptor: {
-        client(result) {
-          const data = result.data.toString();
+        client(chunk) {
+          const data = chunk.toString();
           return new Promise(resolve => {
             setTimeout(() => {
               const newData = data.replace('GET / ', 'GET /tom ');
