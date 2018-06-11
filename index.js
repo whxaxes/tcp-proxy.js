@@ -5,18 +5,27 @@ const through = require('through2');
 const debug = require('debug')('tcp-proxy');
 const EventEmitter = require('events').EventEmitter;
 
-function genThrough(interceptor, host, port) {
+function genThrough(interceptor, connection) {
 
   return through.obj(function(chunk, enc, done) {
 
-    chunk = {
-      data: chunk,
-      ip: host.address || host,
-      port: host.port || port,
-      size: chunk.length,
+    let context = {
+      client: {
+        ip: connection.client.address().address,
+        port: connection.client.address().port,
+      },
+      server : {
+        ip: connection.server.address().address,
+        port: connection.server.address().port,
+      },
+      self: {
+        ip: connection.forwardHost,
+        port: connection.forwardPort,
+      },
+      size : chunk.length,
     };
 
-    const result = interceptor(chunk, enc);
+    const result = interceptor(chunk, enc, context);
 
     const handle = data => {
 
@@ -24,7 +33,7 @@ function genThrough(interceptor, host, port) {
         data = Buffer.from(data);
       }
 
-      done(null, data || chunk.data);
+      done(null, data || chunk, context);
     };
 
     if (result) {
@@ -80,13 +89,13 @@ module.exports = class TCPProxy extends EventEmitter {
 
             // client interceptor
             if (interceptor.client) {
-              interceptorClient = genThrough(interceptor.client, client.address(), proxyPort);
+              interceptorClient = genThrough(interceptor.client, { client, server, forwardHost, forwardPort });
               _client = _client.pipe(interceptorClient);
             }
 
             // server interceptor
             if (interceptor.server) {
-              interceptorServer = genThrough(interceptor.server, forwardHost, forwardPort);
+              interceptorServer = genThrough(interceptor.server, { client, server, forwardHost, forwardPort });
               _server = _server.pipe(interceptorServer);
             }
 
