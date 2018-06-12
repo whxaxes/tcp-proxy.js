@@ -33,7 +33,7 @@ function genThrough(interceptor, connection) {
         data = Buffer.from(data);
       }
 
-      done(null, data || chunk, context);
+      done(null, data || chunk);
     };
 
     if (result) {
