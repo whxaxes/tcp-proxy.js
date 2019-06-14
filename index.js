@@ -6,9 +6,7 @@ const debug = require('debug')('tcp-proxy');
 const EventEmitter = require('events').EventEmitter;
 
 function genThrough(interceptor, connection) {
-
   return through.obj(function(chunk, enc, done) {
-
     const context = {
       client: {
         ip: connection.client.address().address,
@@ -28,7 +26,6 @@ function genThrough(interceptor, connection) {
     const result = interceptor(chunk, enc, context);
 
     const handle = data => {
-
       if (data && !Buffer.isBuffer(data)) {
         data = Buffer.from(data);
       }
@@ -48,9 +45,7 @@ function genThrough(interceptor, connection) {
     } else {
       handle();
     }
-
   });
-
 }
 
 module.exports = class TCPProxy extends EventEmitter {
