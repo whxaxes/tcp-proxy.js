@@ -93,6 +93,37 @@ proxy.createProxy({
 });
 ```
 
+
+### Connection Information
+
+#### IP, Port of Client, Server and Self
+
+```js
+proxy.createProxy({
+  forwardPort: 9999,
+  interceptor: {
+    client(result, encoding, connection) {
+      console.info('Connection from ', connection.client.ip, ':', connection.client.port, 'to', connection.self.ip, ':', connection.self.port, 'from', connection.server.ip, ':', connection.server.port);
+      return result
+    }
+  },
+});
+```
+
+#### Data size
+
+```js
+proxy.createProxy({
+  forwardPort: 9999,
+  interceptor: {
+    server(result, encoding, connection) {
+      console.log('Connection Size:' + connection.size);
+      return result
+    }
+  },
+});
+```
+
 ## License
 
 MIT

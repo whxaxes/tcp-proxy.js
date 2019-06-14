@@ -5,10 +5,30 @@ const through = require('through2');
 const debug = require('debug')('tcp-proxy');
 const EventEmitter = require('events').EventEmitter;
 
-function genThrough(interceptor) {
+function genThrough(interceptor, connection) {
+
   return through.obj(function(chunk, enc, done) {
-    const result = interceptor(chunk, enc);
+
+    const context = {
+      client: {
+        ip: connection.client.address().address,
+        port: connection.client.address().port,
+      },
+      server: {
+        ip: connection.server.address().address,
+        port: connection.server.address().port,
+      },
+      self: {
+        ip: connection.forwardHost,
+        port: connection.forwardPort,
+      },
+      size: chunk.length,
+    };
+
+    const result = interceptor(chunk, enc, context);
+
     const handle = data => {
+
       if (data && !Buffer.isBuffer(data)) {
         data = Buffer.from(data);
       }
@@ -28,7 +48,9 @@ function genThrough(interceptor) {
     } else {
       handle();
     }
+
   });
+
 }
 
 module.exports = class TCPProxy extends EventEmitter {
@@ -67,19 +89,19 @@ module.exports = class TCPProxy extends EventEmitter {
 
             // client interceptor
             if (interceptor.client) {
-              interceptorClient = genThrough(interceptor.client);
+              interceptorClient = genThrough(interceptor.client, { client, server, forwardHost, forwardPort });
               _client = _client.pipe(interceptorClient);
             }
 
             // server interceptor
             if (interceptor.server) {
-              interceptorServer = genThrough(interceptor.server);
+              interceptorServer = genThrough(interceptor.server, { client, server, forwardHost, forwardPort });
               _server = _server.pipe(interceptorServer);
             }
 
             _client.pipe(server);
             _server.pipe(client);
-            debug(`proxy 127.0.0.1:${proxyPort} connect to ${forwardHost}:${forwardPort}`);
+            debug(`proxy {$proxyHost}:${proxyPort} connect to ${forwardHost}:${forwardPort}`);
             this.emit('connection', _client, _server);
           });
 
