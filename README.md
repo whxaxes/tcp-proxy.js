@@ -45,6 +45,19 @@ proxy.createProxy({
 });
 ```
 
+### Create a new proxy instance with dynamic host:ip
+
+```js
+const TCPProxy = require('tcp-proxy.js');
+const proxy = new TCPProxy({ host: 'localhost', port: 9229 });
+proxy.createProxy({
+  getForwardInfo: () => ({
+    host: '127.0.0.1',
+    port: data.port,
+  }),
+});
+```
+
 ### End proxy
 
 ```js

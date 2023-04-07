@@ -4,6 +4,7 @@ const net = require('net');
 const through = require('through2');
 const debug = require('debug')('tcp-proxy');
 const EventEmitter = require('events').EventEmitter;
+const assert = require('assert');
 let seqId = 0;
 
 function genThrough(interceptor, connection) {
@@ -58,11 +59,15 @@ module.exports = class TCPProxy extends EventEmitter {
     this.clients = [];
   }
 
-  createProxy({ host, port, forwardPort, forwardHost, interceptor }) {
+  createProxy({ host, port, forwardPort, forwardHost, getForwardInfo, interceptor }) {
     const proxyHost = host || this.host;
     const proxyPort = port || this.port;
-    forwardHost = forwardHost || '127.0.0.1';
     interceptor = interceptor || {};
+
+    const baseForwardInfo = {
+      port: forwardPort,
+      host: forwardHost || '127.0.0.1',
+    };
 
     if (this.server) {
       const args = [].slice.call(arguments);
@@ -77,10 +82,14 @@ module.exports = class TCPProxy extends EventEmitter {
           let interceptorClient;
           let interceptorServer;
           debug('new connection from %o', client.address());
-          const server = net.connect({
-            port: forwardPort,
-            host: forwardHost,
-          }, () => {
+
+          // support get forward info dynamically
+          const forwardInfo = typeof getForwardInfo === 'function'
+            ? getForwardInfo()
+            : baseForwardInfo;
+
+          assert(forwardInfo.host, 'host in forwardInfo is required');
+          const server = net.connect(forwardInfo, () => {
             let _client = client;
             let _server = server;
 
@@ -88,8 +97,8 @@ module.exports = class TCPProxy extends EventEmitter {
               id: seqId++,
               client,
               server,
-              forwardHost,
-              forwardPort,
+              forwardHost: forwardInfo.host,
+              forwardPort: forwardInfo.port,
             };
 
             // client interceptor
@@ -106,7 +115,7 @@ module.exports = class TCPProxy extends EventEmitter {
 
             _client.pipe(server);
             _server.pipe(client);
-            debug(`proxy {$proxyHost}:${proxyPort} connect to ${forwardHost}:${forwardPort}`);
+            debug(`proxy ${proxyHost}:${proxyPort} connect to ${forwardInfo.host}:${forwardInfo.port}`);
             this.emit('connection', _client, _server);
           });
 
@@ -115,7 +124,7 @@ module.exports = class TCPProxy extends EventEmitter {
             server.destroy();
             interceptorClient && interceptorClient.end();
             interceptorServer && interceptorServer.end();
-            debug(`${forwardHost}:${forwardPort} disconnect [${err ? `error: ${err.message}` : 'close'}]`);
+            debug(`${forwardInfo.host}:${forwardInfo.port} disconnect [${err ? `error: ${err.message}` : 'close'}]`);
             this.removeListener('close', onClose);
           };
 
